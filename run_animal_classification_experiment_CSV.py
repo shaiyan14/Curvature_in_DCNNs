@@ -8,7 +8,9 @@ from torchvision import transforms
 import animals_experiment_functions as af
 import ShapesDataset as sd
 
-reload(af)
+"""
+Example code to run a shape information analysis with "animals_experiment_functions.py" 
+"""
 
 # for reproducibility and speed
 torch.manual_seed(0)
@@ -49,7 +51,7 @@ model_comparison = af.Curve_comparison(model_name,
          task_2AFC= True,
          csv_folder= 'shapes')
 
-# do a binary comparison between animals and each other category in class_1_list
+# do a binary comparison between animals ('animals') and sparse components of animal shape ('sparse_animals')
 for fragment in fragments_list:
 
     # transforms for training and validation
@@ -62,7 +64,6 @@ for fragment in fragments_list:
         sd.ZeroMeanPoints(),
         sd.RasterPoints(fill= False),
         sd.RepMatImage(),
-        #sd.Normalize(new_mean=[0.485, 0.456, 0.406], new_std=[0.229, 0.224, 0.225]),
         sd.Normalize(new_mean=[0.456, 0.456, 0.456], new_std=[0.225,  0.225, 0.225]),
         #sd.ShowImage(),
         sd.ToTensor()
@@ -79,7 +80,6 @@ for fragment in fragments_list:
         sd.ZeroMeanPoints(),
         sd.RasterPoints(fill= False),
         sd.RepMatImage(),
-        #sd.Normalize(new_mean=[0.485, 0.456, 0.406], new_std=[0.229, 0.224, 0.225]),
         sd.Normalize(new_mean=[0.456, 0.456, 0.456], new_std=[0.225,  0.225, 0.225]),
         sd.ToTensor()
     ])

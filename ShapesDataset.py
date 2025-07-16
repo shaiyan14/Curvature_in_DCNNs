@@ -19,7 +19,7 @@ class ShapesDataset(Dataset):
     def __init__(self, creature, root_dir, class_tuples=None, transform=None):
         """
         Args:
-            creature (string): name of the creature
+            creature (string): name of the creature (animals, var_skew, etc.)
             root_dir (string): should be "shapes".
             transform (callable, optional): Optional transform to be applied
                 on a sample.
@@ -67,6 +67,8 @@ class ZeroMeanPoints(object):
         return points
 
 class MatchPerimeterPoints(object):
+    """Set perimiter to fixed value."""
+
     def __call__(self,points):
         x_i = points[0,:-1]
         x_i_plus_1 = points[0,1:]
@@ -81,6 +83,8 @@ class MatchPerimeterPoints(object):
         return points
 
 class MatchAreaPoints(object):
+    """Set area to fixed value."""
+    
     def __call__(self,points):
         x_i = points[0,:-1]
         x_i_plus_1 = points[0,1:]
@@ -125,6 +129,7 @@ class RandomRotatePoints(object):
         return points
 
 class GetFragmentPoints(object):
+    """Grab a fragment from the shape starting at a random point along the contour."""
     def __init__(self, start_position=None, length=None):
         assert isinstance(start_position, (int, type(None)))
         assert isinstance(length, (int, type(None)))
@@ -150,6 +155,7 @@ class GetFragmentPoints(object):
         return points
 
 class RasterPoints(object):
+    """Convert 2D points to 2D numpy array 'image'."""
     def __init__(self, image_dim = 224, fill = False, AA_multiplier= 5):
         assert isinstance(image_dim, int)
         assert isinstance(fill, bool)

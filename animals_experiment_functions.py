@@ -33,6 +33,54 @@ import ShapesDataset as sd
 
 class Curve_comparison:
 
+    """
+    Creates an object that stores analysis parameters and runs the anaysis to test for shape information in deep neural networks. 
+
+        Parameters
+        ----------
+        model_name : str
+            Name of deep net model using torchvision naming scheme (e.g. 'vgg16' or 'alexnet') 
+        class_0 : str
+            Name of 1st class in forced choice task as named in "shapes" subfolders (e.g. animals)
+        class_1 : str 
+            Name of 2nd class in forced choice task as named in "shapes" subfolders (e.g. var_skew_kurt)
+        training_transform : torchvision.transforms
+            Data transform for training e.g. using ShapesDataset transforms
+        validation_transform : torchvision.transforms
+            Data transform for validation
+        epochs : int, default 5
+            Number of training epochs per comparison
+        k : int, default 5
+            Number of cross-validation folds
+        random_weights : bool, default False
+            Use random weights to initialize network as opposed to default weights from torchvision
+        save_weights : bool, default False
+            Save learned linear weights (not pretrained weights) after each training 
+        load_weights : bool, default False
+            Load existing weights from previous run
+        save_results : bool, default True
+            Save results of analysis (linear decoding performance)
+        run_name : str, default ''
+            Unique name for this analysis run for use in saving and loading
+        use_gpu : bool, default True
+            Use CUDA with NVIDIA GPU
+        image_folder : str, default 'Curvature_all'
+            Image folder name to use when loading prerendered images for analysis
+        task_2AFC : bool, default True
+            Whether to use the two-alternative forced choice task rather than a binary classifcation task 
+        csv_folder : str, default 'shapes'
+            Root folder of CSV files containing shape points
+        fragment_length : int, default 120
+            How many points from the shape are being used (120 is a full shape)
+        
+        Returns
+        ------
+        Curve_comparison
+            Object that contains all the necessary parameters to run the analysis
+
+    """
+
+
     def __init__(self,
                  model_name,
                  class_0,
@@ -486,11 +534,11 @@ class Curve_comparison:
         self.generate_train_test_split_tuple_lists_CSV()
 
         print('class 0: ' + class_0 + ', class 1: ' + class_1)
-        print('Fragment length ' + str(self.fragment_length))
+        print('\nFragment length: ' + str(self.fragment_length))
 
         for curr_rep in range(0,k):
 
-            print('\nCV rep ' + str(curr_rep+1) + ' of ' + str(k))
+            print('\nCross Validation rep ' + str(curr_rep+1) + ' of ' + str(k))
             self.curr_rep = curr_rep
 
             if task_2AFC:

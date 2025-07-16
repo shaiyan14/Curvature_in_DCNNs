@@ -15,7 +15,7 @@ This project uses PyTorch and torchvision in Python. This project uses miniconda
 ## Usage
 
 1. Initialize a `Curve_comparison` object from [animals_experiment_functions.py](animals_experiment_functions.py).
-2. Use `torchvision.transforms.Compose` with a [Shapes_Dataset](ShapesDataset.py) dataset to create training and testing transforms.
+2. Use `torchvision.transforms.Compose` with a [ShapesDataset](ShapesDataset.py) dataset to create training and testing transforms.
 3. Set the fragment length (if using shape fragments) with `animals_experiment_functions.set_fragment_length(fragment_length: int)`.
 4. Run the analysis. Use `animals_experiment_functions.CV_performance_over_feature_layers` to get cross validated performance or edit the example in [`run_animal_classification_experiment_CSV.py`](run_animal_classification_experiment_CSV.py)
 
