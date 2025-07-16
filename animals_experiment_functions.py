@@ -2,7 +2,7 @@
 """
 Created on Thu Apr 11 21:11:47 2019
 
-@author: shaiy
+@author: Shaiyan Keshvari
 """
 
 import numpy as np
@@ -140,7 +140,8 @@ class Curve_comparison:
             if random_weights:
                 net = eval('tmodels.' + model_name + '(pretrained=False)')
             else:
-                net = eval('tmodels.' + model_name + '(pretrained=True)')
+                net = eval('tmodels.' + model_name + "(weights='DEFAULT')")
+
 
         net = sequentialize_model(net,model_name)
         if last_layer == -1:
@@ -294,7 +295,7 @@ class Curve_comparison:
         pc = (np.mean(predicted_label == actual_label))
         hr = np.sum(np.logical_and(actual_label == 0, predicted_label == 0))/np.sum(actual_label == 0)
         fa = np.sum(np.logical_and(actual_label == 1, predicted_label == 0))/np.sum(actual_label == 1)
-        print('PC: ' + str(pc))
+        print('Accuracy: ' + f"{pc:.4f}")
 
         return pc, hr, fa
 

@@ -2,7 +2,7 @@
 """
 Created on Wed Nov  6 16:39:30 2019
 
-@author: shaiy
+@author: Shaiyan Keshvari
 """
 import pandas as pd
 import os
@@ -223,10 +223,10 @@ class Normalize(object):
         return new_image
 
 class ShowImage(object):
-    """Convert from tensor to PIL image and draw"""
+    """Convert from tensor to PIL image and draw - FOR DEBUGGING ONLY"""
 
     def __call__(self, tensor):
         tmp  = np.transpose(np.asarray(tensor),axes=(1,2,0))
         image = Image.fromarray(np.uint8(5*tmp+128.))
         image.show()
-        crash
+        
