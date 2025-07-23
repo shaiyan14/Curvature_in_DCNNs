@@ -12,6 +12,7 @@ import torch
 import torch.nn as nn
 
 import torchvision.models as tmodels
+import torchvision.models.feature_extraction as fx
 import torch.optim as optim
 import torchvision
 
@@ -173,6 +174,7 @@ class Curve_comparison:
         random_weights = self.random_weights
         task_2AFC = self.task_2AFC
 
+        # Tried doing analysis with alternate model weights
         if model_name == 'alexnet_places365':
             arch = 'alexnet'
 
@@ -186,23 +188,25 @@ class Curve_comparison:
             net = model
         else:
             if random_weights:
-                net = eval('tmodels.' + model_name + '(pretrained=False)')
+                net = tmodels.get_model(model_name, weights=None)
             else:
-                net = eval('tmodels.' + model_name + "(weights='DEFAULT')")
-
-
-        net = sequentialize_model(net,model_name)
-        if last_layer == -1:
-            last_layer = len(net)
+                net = tmodels.get_model(model_name, weights="DEFAULT")                
 
         # don't collect gradients on the network
         for param in net.parameters():
             param.requires_grad = False
 
-        # cut the network off at the ReLu
-        net = net[0:last_layer+1]
+        if last_layer == -1:
+            self.net = net
+            return
+
+        # extract the subnetwork
+        net = fx.create_feature_extractor(net,return_nodes={last_layer : "feat"})
+        net = SingleOutputWrapper(net, 'feat')
+        
         b = net(torch.FloatTensor(np.random.randn(1,3,224,224)))
         num_regressors = b.data.numel()
+        print(num_regressors)
         net.add_module('flattener',Flatten())
         
         if not task_2AFC:
@@ -736,12 +740,24 @@ class Curve_comparison:
 
 def get_relu_indices(net):
 
-    layers_to_try=[]
+# we want to run analysis on final "eval" version of model
+    
+    _ , eval_nodes = fx.get_graph_node_names(net)
 
-    for i, layer in enumerate(net,0):
-        if isinstance(layer, nn.ReLU):
-            layers_to_try.append(i)
-
+    layers_to_try = []
+    # check for relu or MLP block, ignore input layer "x". NOTE: finding the "GELU" layers is very difficult to do with
+    # feature_extraction, because get_graph_node_names treats MLBlock as a "leaf node", and does not trace inside of it.
+    # This behavior is hard to change because get_graph_node_names only takes arguments of what extra modules to treat as leaf
+    # nodes, not arguments for which ones to NOT treat as leaf nodes. 
+    for node_name in eval_nodes:
+        try:
+            net_module = net.get_submodule(node_name)
+            if isinstance(net_module, nn.ReLU) or isinstance(net_module, tmodels.vision_transformer.MLPBlock):
+                layers_to_try.append(node_name)
+        except AttributeError:
+            # node name does not correspond to a module (is "x", "flatten", or some other non-module operation)
+            continue
+    
     return layers_to_try
 
 def find_datasize(path1,path2):
@@ -828,3 +844,13 @@ class TwoAFC(nn.Module):
     def forward(self,class_0,class_1):
         tmp = (self.decoder(class_0)-self.decoder(class_1))
         return(torch.sum(tmp)/len(tmp))
+
+class SingleOutputWrapper(nn.Module):
+    def __init__(self, feature_extractor, node_key):
+        super().__init__()
+        self.feature_extractor = feature_extractor
+        self.node_key = node_key
+
+    def forward(self, x):
+        out = self.feature_extractor(x)
+        return out[self.node_key]
