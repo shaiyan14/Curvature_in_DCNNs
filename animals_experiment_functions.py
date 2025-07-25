@@ -202,13 +202,13 @@ class Curve_comparison:
 
         # extract the subnetwork
         net = fx.create_feature_extractor(net,return_nodes={last_layer : "feat"})
-        net = SingleOutputWrapper(net, 'feat')
         
-        b = net(torch.FloatTensor(np.random.randn(1,3,224,224)))
+        b = net(torch.FloatTensor(np.random.randn(1,3,224,224)))["feat"]
         num_regressors = b.data.numel()
         print(num_regressors)
-        net.add_module('flattener',Flatten())
+        net = nn.Sequential(SingleOutputWrapper(net,"feat"),nn.Flatten())
         
+
         if not task_2AFC:
             net.add_module('final_layer',torch.nn.Linear(num_regressors,2))
 
@@ -259,6 +259,9 @@ class Curve_comparison:
                     optimizer.zero_grad()
 
                     # forward + backward + optimize
+                    #print("\nshape 0: " + str(net(inputs_0).shape))
+                    #print("\nshape 1: " + str(net(inputs_1).shape))
+                    #breakpoint()
                     loss = -TwoAFC_layer(net(inputs_0),net(inputs_1))
                     loss.backward()
                     optimizer.step()
@@ -752,7 +755,7 @@ def get_relu_indices(net):
     for node_name in eval_nodes:
         try:
             net_module = net.get_submodule(node_name)
-            if isinstance(net_module, nn.ReLU) or isinstance(net_module, tmodels.vision_transformer.MLPBlock):
+            if isinstance(net_module, nn.ReLU) or isinstance(net_module, tmodels.vision_transformer.MLPBlock) or isinstance(net_module, torchvision.ops.misc.MLP):
                 layers_to_try.append(node_name)
         except AttributeError:
             # node name does not correspond to a module (is "x", "flatten", or some other non-module operation)
@@ -818,7 +821,7 @@ def plot_results(results_dict,filename,save_figure=True,fig_ax=None):
 
     #ax.set_ylabel(results_dict[sorted_key_list[0]]['class_1'] + '\nPerformance')
 
-    #plt.legend(results_dict.keys())
+    plt.legend(results_dict.keys())
 
     if save_figure:
         fig.savefig(filename + '.svg',format= 'svg')
@@ -832,9 +835,9 @@ def plot_averaged_results(csv_filename):
         results = load_results('results' + '/rname')
 
 
-class Flatten(nn.Module):
-    def forward(self, inp):
-        return inp.view(inp.size(0), -1)
+#class Flatten(nn.Module):
+#    def forward(self, inp):
+#        return inp.view(inp.size(0), -1)
 
 class TwoAFC(nn.Module):
     def __init__(self,nfeatures):
@@ -844,6 +847,35 @@ class TwoAFC(nn.Module):
     def forward(self,class_0,class_1):
         tmp = (self.decoder(class_0)-self.decoder(class_1))
         return(torch.sum(tmp)/len(tmp))
+
+# DCNN with attached linear readout
+class PartialModelWithLinear(torch.nn.Module):
+    def __init__(self, layer):
+        super(PartialModelWithLinear, self).__init__()
+        
+        m = self.net
+        # Extract 4 main layers (note: MaskRCNN needs this particular name
+        # mapping for return nodes)
+        self.body = create_feature_extractor(flatten(net), return_nodes={"feat": layer})
+        
+        # Dry run to get number of channels for Linear
+        inp = torch.randn(1, 3, 224, 224)
+        with torch.no_grad():
+            out = self.body(inp)
+        
+        # Build decoder
+        self.decoder = nn.Linear(out.shape[1],1,bias=False)
+        self.out_channels = 1
+
+    def forward(self, x, y):
+        x = self.body(x)
+        y = self.body(y)
+        x = self.decoder(x)
+        return x
+
+
+# Now we can build our model!
+#model = MaskRCNN(Resnet50WithFPN(), num_classes=91).eval()
 
 class SingleOutputWrapper(nn.Module):
     def __init__(self, feature_extractor, node_key):
