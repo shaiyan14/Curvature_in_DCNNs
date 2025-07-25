@@ -1,6 +1,9 @@
 # Saved model runs
 results/
 
+# result images
+*.svg
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
