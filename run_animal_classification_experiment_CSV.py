@@ -21,17 +21,17 @@ torch.backends.cudnn.benchmark = True
 k = 5
 
 # classes to compare
-fragments_list = np.round(np.linspace(2,120,3)).astype(int)
+fragments_list = np.round(np.linspace(1,120,5)).astype(int)
 class_0_list=[]
 class_1_list=[]
 class_0 = 'animals'
-class_1 = 'sparse_animals'
+class_1 = 'unconstrained'
 for ii in fragments_list:
     class_0_list.append(class_0 + '_' + str(ii))
     class_1_list.append(class_1 + '_' + str(ii))
 
 results = dict()
-model_name = 'swin_b'
+model_name = 'resnet50'
 
 # model comparison object
 model_comparison = af.Curve_comparison(model_name,
@@ -92,4 +92,5 @@ for fragment in fragments_list:
     results[str(fragment)] = pc_all_feat
 
     model_comparison.save_properties_function()
-    af.plot_results(results,model_name + "_current")
+
+    #af.plot_results(results,model_name + "_current")
