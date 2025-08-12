@@ -22,6 +22,7 @@ k = 5
 
 # classes to compare
 fragments_list = np.round(np.linspace(1,120,5)).astype(int)
+fragments_list = [120]
 class_0_list=[]
 class_1_list=[]
 class_0 = 'animals'
@@ -31,7 +32,7 @@ for ii in fragments_list:
     class_1_list.append(class_1 + '_' + str(ii))
 
 results = dict()
-model_name = 'resnet50'
+model_name = 'vit_b_16'
 
 # model comparison object
 model_comparison = af.Curve_comparison(model_name,
@@ -65,8 +66,7 @@ for fragment in fragments_list:
         sd.RasterPoints(fill= False),
         sd.RepMatImage(),
         sd.Normalize(new_mean=[0.456, 0.456, 0.456], new_std=[0.225,  0.225, 0.225]),
-        #sd.ShowImage(),
-        sd.ToTensor()
+        sd.ToTensor(),                
     ])
 
     model_comparison.training_transform = training_transform
@@ -81,7 +81,7 @@ for fragment in fragments_list:
         sd.RasterPoints(fill= False),
         sd.RepMatImage(),
         sd.Normalize(new_mean=[0.456, 0.456, 0.456], new_std=[0.225,  0.225, 0.225]),
-        sd.ToTensor()
+        sd.ToTensor(),
     ])
 
     model_comparison.validation_transform = valid_transform

@@ -234,5 +234,5 @@ class ShowImage(object):
     def __call__(self, tensor):
         tmp  = np.transpose(np.asarray(tensor),axes=(1,2,0))
         image = Image.fromarray(np.uint8(5*tmp+128.))
-        image.show()
+        image.save('example_image.png')
         

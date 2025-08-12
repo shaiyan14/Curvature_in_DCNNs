@@ -32,6 +32,8 @@ import matplotlib.pyplot as plt
 
 import ShapesDataset as sd
 
+from receptivefield import receptivefield
+
 class Curve_comparison:
 
     """
@@ -206,7 +208,15 @@ class Curve_comparison:
         b = net(torch.FloatTensor(np.random.randn(1,3,224,224)))["feat"]
         num_regressors = b.data.numel()
         print(num_regressors)
-        net = nn.Sequential(SingleOutputWrapper(net,"feat"),nn.Flatten())
+        net = nn.Sequential(SingleOutputWrapper(net,"feat"))
+        
+        try:
+            print(receptivefield(net, (1,3, 224, 224)).rfsize)
+        except ValueError:
+            print("Input tensor is too small relative to network receptive field")
+            
+
+        net = nn.Sequential(net,nn.Flatten())
         
 
         if not task_2AFC:
